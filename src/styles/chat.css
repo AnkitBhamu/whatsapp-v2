@@ -1,0 +1,17 @@
+
+.header-icons{
+    width: 20px;
+    height: 20px;
+}
+
+.chats::-webkit-scrollbar{
+    width: 6px;
+}
+
+.chats::-webkit-scrollbar-thumb{
+    background-color: grey;
+}
+
+.chats::-webkit-scrollbar-button{
+display: none;
+}
