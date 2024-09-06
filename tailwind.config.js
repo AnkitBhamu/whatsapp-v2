@@ -1,23 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      textColor:{
-        "chat-bar-msg":['grey'],
-        "chat-pending":['#553ce4']
+      textColor: {
+        "chat-bar-msg": ["grey"],
+        "chat-pending": ["#3aa13abf"],
       },
-      colors:{
-        "chat-bg":["#faf6f3"],
-        "my-chat" :['#fdfdfd'],
-        "frnd-chat": ['#e3f9c3']
+      colors: {
+        "chat-bg": ["white"],
+        "my-chat": ["white"],
+        "frnd-chat": ["#e3f9c3"],
       },
-      dropShadow:{
-        "my-msg":['1px 4px 10px #ccb6b6']
-      }
+      dropShadow: {
+        "my-msg": ["1px 4px 10px #ccb6b6"],
+      },
     },
   },
   plugins: [],
-}
+};

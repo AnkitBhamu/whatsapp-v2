@@ -1,17 +1,21 @@
-
-.header-icons{
-    width: 20px;
-    height: 20px;
+.header-icons {
+  width: 20px;
+  height: 20px;
 }
 
-.chats::-webkit-scrollbar{
-    width: 6px;
+.chats::-webkit-scrollbar {
+  width: 6px;
 }
 
-.chats::-webkit-scrollbar-thumb{
-    background-color: grey;
+.chats::-webkit-scrollbar-thumb {
+  background-color: grey;
 }
 
-.chats::-webkit-scrollbar-button{
-display: none;
+.chats::-webkit-scrollbar-button {
+  display: none;
+}
+
+.chat-container {
+  background: url("../assets/chat-bg.png");
+  background-size: contain;
 }

@@ -1,15 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { TbSettings } from "react-icons/tb";
 import { BsPlus } from "react-icons/bs";
 import { VscSearch } from "react-icons/vsc";
-import profile from "../assets/profile.jpg";
 import "../styles/chatbar.css";
+import axios from "axios";
+import empty_image from "../assets/empty_image.svg";
+import { beautify_date, convert_to_time } from "../utils/time_convert";
 
-export default function ChatBar() {
+export default function ChatBar(props) {
+  let [contacts, setcontacts] = useState([]);
+  let [chats, setchats] = useState(new Map());
+
+  // console.log("Chats are:", chats);
+
+  async function fetch_chats(user1, user2) {
+    axios
+      .get(
+        `http://localhost:8080/api/chats/fetch?user1=${user1}&user2=${user2}`
+      )
+      .then((response) => {
+        setchats((prev_chats) => {
+          let new_map = new Map(prev_chats);
+          new_map.set(user2, response.data);
+
+          return new_map;
+        });
+      });
+  }
+
+  // get all contacts
+  async function get_chat_history(mobile) {
+    let response = await axios.get(
+      `http://localhost:8080/api/user/contacts?mobile=${mobile}`
+    );
+
+    response.data.contacts.forEach((element) => {
+      axios
+        .get(`http://localhost:8080/api/user/details?mobile=${element}`)
+        .then(
+          (response) => {
+            setcontacts((contacts) => [...contacts, response.data]);
+            fetch_chats("1234567890", response.data.mobile);
+          }
+          // using this form for avoiding closure issues as it takes old value as arguement and update it(basically chaining)
+        )
+        .catch((err) => console.log(err));
+    });
+  }
+
+  useEffect(() => {
+    get_chat_history("1234567890");
+  }, []);
+
   return (
-    <div className="pt-4 px-5 min-w-80 max-w-96  h-screen flex flex-col">
+    <div className="pt-4  min-w-80 max-w-[400px]  h-screen flex flex-col">
       {/* chatbar heading */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center px-5">
         <div className="font-bold text-[24px] text-black">Chats</div>
         <div className="right flex gap-7 items-center">
           <BsPlus className="h-7 w-7" />
@@ -18,7 +64,7 @@ export default function ChatBar() {
       </div>
 
       {/*  chat search */}
-      <div className="search-bar h-10 mt-5 relative shrink-0">
+      <div className="search-bar h-10 mt-5 relative shrink-0 mx-5">
         <input
           type="text"
           placeholder="Search or start new chat"
@@ -28,427 +74,54 @@ export default function ChatBar() {
       </div>
 
       {/* chats section */}
-      <div className="chatbar chat-section mt-6 pr-2 w-full flex flex-col pb-3 gap-y-8 grow overflow-hidden overflow-y-scroll">
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
+      <div className="px-3 chatbar chat-section mt-6 w-full flex flex-col pb-3 grow overflow-hidden overflow-y-scroll">
+        {contacts.map((item, index) => (
+          <div
+            className="chat flex gap-3 cursor-pointer hover:bg-black/10 text-white py-3 px-3"
+            key={index}
+            onClick={() => {
+              if (chats.get(item.mobile)) {
+                props.chat_selector({
+                  user_details: item,
+                  msgs: chats.get(item.mobile),
+                });
+              }
+            }}
+          >
+            {/* left section */}
+            <img
+              src={item.profile_pic}
+              loading="lazy"
+              onError={(event) => {
+                event.target.src = empty_image;
+              }}
+              className="w-12 h-12 rounded-full shrink-0"
+            />
+            {/* middle section */}
+            <div className="flex flex-col gap-y-1 grow">
+              <div className="font-bold text-[#0d0d0d]">{item.name}</div>
+              <div className="line-clamp-1 text-chat-bar-msg-0">
+                {chats.get(item.mobile) && chats.get(item.mobile).length > 0
+                  ? chats.get(item.mobile)[0].msg
+                  : null}
+              </div>
             </div>
-          </div>
 
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
+            {/* right section */}
+            <div className="flex flex-col gap-y-1 shrink-0">
+              <div className="text-chat-pending-0 text-sm font-medium">
+                {chats.get(item.mobile) && chats.get(item.mobile).length > 0
+                  ? beautify_date(chats.get(item.mobile)[0].msgtime)
+                  : null}
+              </div>
+              <div className="flex items-center justify-end">
+                <div className="bg-[#3aa13abf] rounded-full w-6 h-6 text-white flex items-center justify-center">
+                  1
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* chat*/}
-        <div className="chat flex gap-3">
-          {/* left section */}
-          <img
-            src={profile}
-            loading="lazy"
-            alt="Error!"
-            className="w-14 h-14 rounded-full"
-          />
-          {/* middle section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="font-bold text-[#0d0d0d]">Maya Kasuma</div>
-            <div className="line-clamp-1 text-chat-bar-msg-0">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-              Accusantium veniam, perferendis quisquam reiciendis fuga qui
-              recusandae assumenda. Ab, rerum numquam! Adipisci ad perspiciatis
-              earum totam cumque sapiente beatae facilis numquam.
-            </div>
-          </div>
-
-          {/* right section */}
-          <div className="flex flex-col gap-y-1">
-            <div className="text-chat-pending-0 font-bold">3:48PM</div>
-            <div className="flex items-center justify-end">
-              <div className="bg-blue-600 rounded-full w-6 h-6 text-white flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
