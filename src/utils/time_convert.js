@@ -30,16 +30,17 @@ function convert_to_time(time) {
 
   let minute = dobj.getMinutes().toString().padStart(2, "0");
 
-  console.log(hour + ":" + minute);
+  // console.log(hour + ":" + minute);
   return hour + ":" + minute + " " + am_pm;
 }
 
 function convert_to_date(time) {
   let dobj = new Date(time);
-  let day = dobj.getDay().toString().padStart(2, "0");
-  let month = dobj.getMonth().toString().padStart(2, "0");
+  console.log(dobj);
+  let date = dobj.getDate().toString().padStart(2, "0");
+  let month = (dobj.getMonth() + 1).toString().padStart(2, "0");
   let year = dobj.getFullYear().toString().padStart(2, "0");
-  return day + "-" + month + "-" + year;
+  return date + "-" + month + "-" + year;
 }
 
 export { beautify_date, convert_to_date, convert_to_time };

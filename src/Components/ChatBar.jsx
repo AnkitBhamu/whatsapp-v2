@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { TbSettings } from "react-icons/tb";
 import { BsPlus } from "react-icons/bs";
 import { VscSearch } from "react-icons/vsc";
 import "../styles/chatbar.css";
 import axios from "axios";
 import empty_image from "../assets/empty_image.svg";
-import { beautify_date, convert_to_time } from "../utils/time_convert";
+import { beautify_date } from "../utils/time_convert";
+import { sockcontext } from "./SocketContextProvider";
 
 export default function ChatBar(props) {
   let [contacts, setcontacts] = useState([]);
   let [chats, setchats] = useState(new Map());
+  let socket = useContext(sockcontext);
+  console.log("re rendered!!");
 
   // console.log("Chats are:", chats);
 
@@ -40,7 +43,10 @@ export default function ChatBar(props) {
         .then(
           (response) => {
             setcontacts((contacts) => [...contacts, response.data]);
-            fetch_chats("1234567890", response.data.mobile);
+            fetch_chats(
+              JSON.parse(localStorage.getItem("mobile")),
+              response.data.mobile
+            );
           }
           // using this form for avoiding closure issues as it takes old value as arguement and update it(basically chaining)
         )
@@ -48,8 +54,30 @@ export default function ChatBar(props) {
     });
   }
 
+  function update_chats(msg) {
+    let sender_mobile = msg.sender;
+    console.log("came here in chat bar!!");
+    setchats((prev) => {
+      if (prev.get(sender_mobile)) {
+        console.log("true work here!!!");
+      }
+      prev.get(sender_mobile).push(msg);
+      prev
+        .get(sender_mobile)
+        .sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
+      console.log(new Map(prev));
+
+      return new Map(prev);
+    });
+  }
+
   useEffect(() => {
-    get_chat_history("1234567890");
+    get_chat_history(JSON.parse(localStorage.getItem("mobile")));
+
+    // register event handlers
+    socket.on("msg", (msg) => {
+      update_chats(msg);
+    });
   }, []);
 
   return (
