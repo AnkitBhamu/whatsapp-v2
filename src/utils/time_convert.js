@@ -36,27 +36,16 @@ function beautify_date(time) {
 function convert_to_time(time) {
   let dobj = new Date(time);
 
-  let am_pm;
-  let hour = dobj.getHours();
+  let options = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true, // This will use 12-hour format and add AM/PM
+  };
 
-  if (hour >= 0 && hour < 12) {
-    am_pm = "AM";
-  } else {
-    am_pm = "PM";
-  }
+  // Convert the UTC time to the local time based on the user's timezone
+  let localTime = dobj.toLocaleTimeString("en-US", options);
 
-  if (hour % 12 === 0) {
-    hour = 12;
-  } else {
-    hour = hour % 12;
-  }
-
-  hour = hour.toString().padStart(2, "0");
-
-  let minute = dobj.getMinutes().toString().padStart(2, "0");
-
-  // console.log(hour + ":" + minute);
-  return hour + ":" + minute + " " + am_pm;
+  return localTime;
 }
 
 function convert_to_date(time) {

@@ -118,7 +118,6 @@ export default function Chat(props) {
 
   function send_media_msg(msg_data, type) {
     let now = new Date();
-    console.log("time is : ", now);
     if (msg_data) {
       let msg = {
         sender: "1234567890",
@@ -142,11 +141,11 @@ export default function Chat(props) {
     let now = new Date();
     if (msg_data != "") {
       let msg = {
-        sender: "1234567890",
+        sender: JSON.parse(localStorage.getItem("mobile")),
         receiver: chat_person,
         msg: msg_data,
         msgtype: "text",
-        msgtime: now.toUTCString(),
+        msgtime: now,
         msgread: false,
         reached_server: false,
       };

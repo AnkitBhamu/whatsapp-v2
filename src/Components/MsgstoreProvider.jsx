@@ -60,13 +60,12 @@ function MsgstoreProvider({ children }) {
     console.log("Updating the chats messages");
     setchats((prev) => {
       if (prev.get(sender_mobile)) {
-        console.log("true work here!!!");
+        prev.get(sender_mobile).push(msg);
+        prev
+          .get(sender_mobile)
+          .sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
+        console.log(new Map(prev));
       }
-      prev.get(sender_mobile).push(msg);
-      prev
-        .get(sender_mobile)
-        .sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
-      console.log(new Map(prev));
 
       return new Map(prev);
     });

@@ -42,7 +42,6 @@ export default function ChatBar(props) {
               if (store_data.chats.get(item.mobile)) {
                 props.chat_selector({
                   user_details: item,
-                  // msgs: store_data.chats.get(item.mobile),
                 });
               }
             }}
