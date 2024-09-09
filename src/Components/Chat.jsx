@@ -3,7 +3,6 @@ import "../styles/chat.css";
 import { IoCallOutline } from "react-icons/io5";
 import { VscSearch } from "react-icons/vsc";
 import videocall from "../assets/video_call.png";
-import { IoCheckmarkOutline } from "react-icons/io5";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import { GrEmoji } from "react-icons/gr";
 import { CgAttachment } from "react-icons/cg";
@@ -11,6 +10,10 @@ import { LuSendHorizonal } from "react-icons/lu";
 import empty_image from "../assets/empty_image.svg";
 import { convert_to_date, convert_to_time } from "../utils/time_convert";
 import { sockcontext } from "./SocketContextProvider";
+import EmojiPicker from "emoji-picker-react";
+import { msgcontext } from "./MsgstoreProvider";
+import AttachmentOptions from "./AttachmentOptions";
+import Msg from "./Msg";
 
 export default function Chat(props) {
   let [chats_sorted, setsortedchats] = useState(null);
@@ -18,8 +21,12 @@ export default function Chat(props) {
   let chat_ref = useRef();
   let chat_container_ref = useRef();
   let socket = useContext(sockcontext);
+  let store_data = useContext(msgcontext);
   let [user_stats, setstatus] = useState("offline");
   let chat_input_ref = useRef();
+  let [openemoji, setemoji] = useState(false);
+  let [sentmsg, setmsg] = useState("");
+  let [attachclicked, setattached] = useState(false);
 
   // saving the expensive computation
   let rendered_chats = useMemo(
@@ -43,25 +50,27 @@ export default function Chat(props) {
 
         value.forEach((item, index) => {
           final_array.push(
-            item.sender === "1234567890" ? (
+            item.sender !==
+              JSON.parse(window.localStorage.getItem("mobile")) ? (
               <div className="flex" key={key + index}>
-                <div className="my-chat flex bg-my-chat-0 max-w-[50%] py-1 px-2 flex-col  rounded-md">
-                  <div className="msg">{item.msg}</div>
+                <div className="my-chat flex bg-my-chat-0 max-w-[50%] py-1 px-2 flex-col gap-y-1 rounded-md">
+                  <Msg msg={item} />
                   <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
                     <div>{convert_to_time(item.msgtime)}</div>
-                    {/* <IoCheckmarkOutline className="text-[grey]" /> */}
-                    <IoCheckmarkDoneOutline className="text-[blue]" />
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex justify-end" key={key + index}>
-                <div className="my-chat flex bg-frnd-chat-0 max-w-[50%] py-2 px-2 flex-col items-end  rounded-md">
-                  <div className="msg">{item.msg}</div>
+                <div className="my-chat flex bg-frnd-chat-0 max-w-[50%] py-2 px-2 flex-col gap-y-1 items-end  rounded-md">
+                  <Msg msg={item} />
                   <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
                     <div>{convert_to_time(item.msgtime)}</div>
-                    {/* <IoCheckmarkOutline className="text-[grey]" /> */}
-                    <IoCheckmarkDoneOutline className="text-[blue]" />
+                    {item.msgread ? (
+                      <IoCheckmarkDoneOutline className="text-[blue] w-4 h-4" />
+                    ) : (
+                      <IoCheckmarkDoneOutline className="text-[grey] w-4 h-4" />
+                    )}
                   </div>
                 </div>
               </div>
@@ -78,6 +87,7 @@ export default function Chat(props) {
   }
 
   function sort_chats(chats) {
+    console.log("sorting the chats that are : ", store_data.chats);
     let cmap = new Map();
 
     if (chats.length === 0) {
@@ -103,64 +113,63 @@ export default function Chat(props) {
 
   // add to chats map on receiving a message
   function add_to_chats(msg) {
-    setsortedchats((prev) => {
-      let date = convert_to_date(msg.msgtime);
-      let date_now = convert_to_date(new Date());
-      if (date_now === date) {
-        date = "TODAY";
-      }
-      if (prev.get(date)) {
-        prev.get(date).push(msg);
-        prev
-          .get(date)
-          .sort((a, b) => new Date(a.msgtime) - new Date(b.msgtime));
-      } else {
-        prev.set(date, [msg]);
-        prev
-          .get(date)
-          .sort((a, b) => new Date(a.msgtime) - new Date(b.msgtime));
-      }
+    store_data.chats_updater(msg, msg.receiver);
+  }
 
-      return new Map(prev);
-    });
+  function send_media_msg(msg_data, type) {
+    let now = new Date();
+    console.log("time is : ", now);
+    if (msg_data) {
+      let msg = {
+        sender: "1234567890",
+        receiver: chat_person,
+        msg: "",
+        media_data: msg_data,
+        msgtype: type.toLowerCase(),
+        msgtime: now.toUTCString(),
+        msgread: false,
+        reached_server: false,
+      };
+
+      add_to_chats(msg);
+      socket.emit("msg", msg);
+      setmsg("");
+    }
   }
 
   function sendMsg() {
     let msg_data = chat_input_ref.current.value;
+    let now = new Date();
     if (msg_data != "") {
       let msg = {
         sender: "1234567890",
         receiver: chat_person,
         msg: msg_data,
         msgtype: "text",
-        msgtime: new Date().toISOString(),
+        msgtime: now.toUTCString(),
+        msgread: false,
+        reached_server: false,
       };
 
       socket.emit("msg", msg);
       add_to_chats(msg);
+      setmsg("");
     }
   }
 
+  // clearing the chat on user_change
+  useEffect(() => {
+    setmsg("");
+  }, [props.chat_data.user_details.mobile]);
+
   // function get user_status every 5 ms
   function get_user_status(mobile) {
-    console.log("this function is called!!");
     socket.emit("user_status", mobile);
   }
 
   // register event handler on socket that comes to us
   useEffect(() => {
-    socket.on("msg", (msg) => {
-      console.log("msg came and it is : ", msg);
-      if (chat_person) {
-        console.log("chat person is set");
-        if (msg.sender === chat_person) {
-          add_to_chats(msg);
-        }
-      }
-    });
-
     socket.on("user_status", (status) => {
-      console.log("user is : ", status);
       setstatus(status);
     });
   }, []);
@@ -187,9 +196,14 @@ export default function Chat(props) {
   useEffect(() => {
     if (chat_person !== props.chat_data.user_details.mobile) {
       setperson(props.chat_data.user_details.mobile);
-      setsortedchats(sort_chats(props.chat_data.msgs));
     }
-  }, [props.chat_data]);
+    setsortedchats(
+      sort_chats(store_data.chats.get(props.chat_data.user_details.mobile))
+    );
+
+    // notifying the users that all messages readed they sent
+    socket.emit("all_msg_read", props.chat_data.user_details.mobile);
+  }, [props.chat_data.user_details.mobile, store_data.chats]);
 
   // reset the scroll always to bottom of the chats
   useEffect(() => {
@@ -233,20 +247,43 @@ export default function Chat(props) {
       {/* all chats */}
       <div
         ref={chat_container_ref}
-        className="chats pt-6 px-3 flex flex-col gap-y-8 grow overflow-hidden overflow-y-scroll pb-5 scroll-smooth"
+        className="chats pt-6 px-8 flex flex-col gap-y-8 grow overflow-hidden overflow-y-scroll pb-5 scroll-smooth"
       >
         {rendered_chats}
       </div>
 
       {/* type chat */}
       <div className="h-12 relative flex items-center bg-white px-3 gap-4 shrink-0">
-        <GrEmoji className="w-6 h-6" />
-        <CgAttachment className="w-5 h-5" />
+        <div className="absolute top-[-455px] left-3 ">
+          <EmojiPicker
+            open={openemoji}
+            className="z-50"
+            lazyLoadEmojis={true}
+            onEmojiClick={(emoji) => {
+              setmsg((prev) => prev + emoji.emoji);
+            }}
+          />
+        </div>
+
+        <GrEmoji
+          className="w-6 h-6 relative cursor-pointer"
+          onClick={() => setemoji(!openemoji)}
+        />
+        <CgAttachment
+          className="w-5 h-5"
+          onClick={() => setattached(!attachclicked)}
+        />
+        {attachclicked ? (
+          <AttachmentOptions msg_sender={send_media_msg} active={setattached} />
+        ) : null}
+
         <input
           type="text"
           className="grow h-full outline-none"
           placeholder="Type a message"
           ref={chat_input_ref}
+          onChange={(event) => setmsg(event.target.value)}
+          value={sentmsg}
         />
         <LuSendHorizonal
           className="w-6 h-6"

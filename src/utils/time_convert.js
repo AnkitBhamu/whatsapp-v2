@@ -1,3 +1,24 @@
+function get_local_time(time) {
+  let now = time;
+  const localISOTime =
+    now.getFullYear() +
+    "-" +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(now.getDate()).padStart(2, "0") +
+    "T" +
+    String(now.getHours()).padStart(2, "0") +
+    ":" +
+    String(now.getMinutes()).padStart(2, "0") +
+    ":" +
+    String(now.getSeconds()).padStart(2, "0") +
+    "." +
+    String(now.getMilliseconds()).padStart(3, "0") +
+    "Z";
+
+  return localISOTime;
+}
+
 function beautify_date(time) {
   let dobj = new Date(time);
   let date = dobj.getDate();
@@ -24,7 +45,11 @@ function convert_to_time(time) {
     am_pm = "PM";
   }
 
-  hour = hour % 12;
+  if (hour % 12 === 0) {
+    hour = 12;
+  } else {
+    hour = hour % 12;
+  }
 
   hour = hour.toString().padStart(2, "0");
 
@@ -36,11 +61,10 @@ function convert_to_time(time) {
 
 function convert_to_date(time) {
   let dobj = new Date(time);
-  console.log(dobj);
   let date = dobj.getDate().toString().padStart(2, "0");
   let month = (dobj.getMonth() + 1).toString().padStart(2, "0");
   let year = dobj.getFullYear().toString().padStart(2, "0");
   return date + "-" + month + "-" + year;
 }
 
-export { beautify_date, convert_to_date, convert_to_time };
+export { beautify_date, convert_to_date, convert_to_time, get_local_time };
