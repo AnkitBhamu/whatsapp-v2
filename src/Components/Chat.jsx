@@ -108,6 +108,7 @@ export default function Chat(props) {
       }
     }
 
+    console.log("sorted array is : ", cmap);
     return cmap;
   }
 
@@ -202,6 +203,7 @@ export default function Chat(props) {
 
     // notifying the users that all messages readed they sent
     socket.emit("all_msg_read", props.chat_data.user_details.mobile);
+    store_data.chats.get(props.chat_data.user_details.mobile).unread = 0;
   }, [props.chat_data.user_details.mobile, store_data.chats]);
 
   // reset the scroll always to bottom of the chats

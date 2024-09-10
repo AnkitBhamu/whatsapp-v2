@@ -13,23 +13,26 @@ function MsgstoreProvider({ children }) {
   // get total number of unread chats so that can be updated
 
   async function fetch_chats(user1, user2) {
-    axios
-      .get(
-        `http://localhost:8080/api/chats/fetch?user1=${user1}&user2=${user2}`
-      )
-      .then((response) => {
-        setchats((prev_chats) => {
-          let new_map = new Map(prev_chats);
-          let unread = 0;
-          response.data.forEach((item) => {
-            if (item.msgread === false) unread += 1;
-          });
-          console.log("Unread msgs are : ", unread, user2);
-          new_map.set(user2, response.data);
+    socket.emit("fetch_chats", [user1, user2]);
 
-          return new_map;
-        });
-      });
+    // axios
+    //   .get(
+    //     `http://localhost:8080/api/chats/fetch?user1=${user1}&user2=${user2}`
+    //   )
+    //   .then((response) => {
+    //     setchats((prev_chats) => {
+    //       let new_map = new Map(prev_chats);
+    //       let unread = 0;
+    //       response.data.forEach((item) => {
+    //         if (item.msgread === false) unread += 1;
+    //       });
+
+    //       console.log("Unread msgs are : ", unread, user2);
+    //       new_map.set(user2, response.data);
+
+    //       return new_map;
+    //     });
+    //   });
   }
 
   // get all contacts
@@ -77,6 +80,21 @@ function MsgstoreProvider({ children }) {
     // register event handlers
     socket.on("msg", (msg) => {
       update_chats(msg, msg.sender);
+    });
+
+    socket.on("chats_fetched", (data) => {
+      setchats((prev_chats) => {
+        let new_map = new Map(prev_chats);
+        let unread = 0;
+        data.chats.forEach((item) => {
+          if (item.msgread === false && item.sender === data.users[1])
+            unread += 1;
+        });
+        data.chats.unread = unread;
+        console.log("Unread msgs are : ", unread, data.users[1]);
+        new_map.set(data.users[1], data.chats);
+        return new_map;
+      });
     });
 
     // on users message that are read by the other user

@@ -6,10 +6,47 @@ import "../styles/chatbar.css";
 import empty_image from "../assets/empty_image.svg";
 import { beautify_date } from "../utils/time_convert";
 import { msgcontext } from "./MsgstoreProvider";
+import { CiImageOn } from "react-icons/ci";
+import { TfiVideoClapper } from "react-icons/tfi";
+import { IoDocumentOutline } from "react-icons/io5";
 
 export default function ChatBar(props) {
   let store_data = useContext(msgcontext);
   console.log("re rendered!!");
+  console.log(store_data.chats);
+
+  function render_msg_content(msg) {
+    switch (msg.msgtype.toLowerCase()) {
+      case "text":
+        return msg.msg;
+
+      case "photo": {
+        return (
+          <div className="flex gap-2 items-center">
+            <CiImageOn />
+            Photo
+          </div>
+        );
+      }
+      case "document": {
+        return (
+          <div className="flex gap-2 items-center">
+            <IoDocumentOutline />
+            Document
+          </div>
+        );
+      }
+
+      case "video": {
+        return (
+          <div className="flex gap-2 items-center">
+            <TfiVideoClapper />
+            Video
+          </div>
+        );
+      }
+    }
+  }
 
   return (
     <div className="pt-4  min-w-80 max-w-[400px]  h-screen flex flex-col">
@@ -60,10 +97,9 @@ export default function ChatBar(props) {
               <div className="font-bold text-[#0d0d0d]">{item.name}</div>
               <div className="line-clamp-1 text-chat-bar-msg-0">
                 {store_data.chats.get(item.mobile) &&
-                store_data.chats.get(item.mobile).length > 0 &&
-                store_data.chats.get(item.mobile)[0].msgtype === "text"
-                  ? store_data.chats.get(item.mobile)[0].msg
-                  : null}
+                store_data.chats.get(item.mobile).length > 0
+                  ? render_msg_content(store_data.chats.get(item.mobile)[0])
+                  : "Start a new chat"}
               </div>
             </div>
 
@@ -75,11 +111,14 @@ export default function ChatBar(props) {
                   ? beautify_date(store_data.chats.get(item.mobile)[0].msgtime)
                   : null}
               </div>
-              <div className="flex items-center justify-end">
-                <div className="bg-[#3aa13abf] rounded-full w-6 h-6 text-white flex items-center justify-center">
-                  1
+              {store_data.chats.get(item.mobile) &&
+              store_data.chats.get(item.mobile).unread > 0 ? (
+                <div className="flex items-center justify-end">
+                  <div className="bg-[#3aa13abf] rounded-full w-6 h-6 text-white flex items-center justify-center">
+                    {store_data.chats.get(item.mobile).unread}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
         ))}
