@@ -12,13 +12,17 @@ export default function Msg(props) {
   // refs can be used to store any pointer like things not only htmls they are technically objects that will have same
   //  address throughout the component but its property current can be updated time to time in this way we will have latest changes every time.
   useEffect(() => {
-    let url = URL.createObjectURL(
-      new Blob([props.msg.media_data], { type: props.msg.msgtype })
-    );
-    url_ref.current = url;
+    if (props.msg.msgtype != "text") {
+      let url = URL.createObjectURL(
+        new Blob([props.msg.media_data], { type: props.msg.msgtype })
+      );
+      url_ref.current = url;
 
-    seturl(url);
+      seturl(url);
+    }
+
     return () => {
+      console.log("Deletingg object with url : ", url_ref.current);
       if (url_ref.current) URL.revokeObjectURL(url_ref.current);
     };
   }, [Msg]);
