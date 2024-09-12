@@ -15,7 +15,7 @@
   display: none;
 }
 
-.chat-container {
+:is(.chat-container, .no-chat) {
   background: url("../assets/chat-bg.png");
   background-size: contain;
 }

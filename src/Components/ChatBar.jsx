@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { TbSettings } from "react-icons/tb";
 import { BsPlus } from "react-icons/bs";
 import { VscSearch } from "react-icons/vsc";
@@ -9,9 +9,11 @@ import { msgcontext } from "./MsgstoreProvider";
 import { CiImageOn } from "react-icons/ci";
 import { TfiVideoClapper } from "react-icons/tfi";
 import { IoDocumentOutline } from "react-icons/io5";
+import AccountEdit from "./AccountEdit";
 
 export default function ChatBar(props) {
   let store_data = useContext(msgcontext);
+  let [settings_selected, setsettings] = useState(false);
   console.log("re rendered!!");
   console.log(store_data.chats);
 
@@ -55,7 +57,13 @@ export default function ChatBar(props) {
         <div className="font-bold text-[24px] text-black">Chats</div>
         <div className="right flex gap-7 items-center">
           <BsPlus className="h-7 w-7" />
-          <TbSettings className="h-5 w-5" />
+          <div className="relative">
+            <TbSettings
+              className="h-5 w-5"
+              onClick={() => setsettings(!settings_selected)}
+            />
+            {settings_selected ? <AccountEdit /> : null}
+          </div>
         </div>
       </div>
 
