@@ -11,10 +11,10 @@ import { TfiVideoClapper } from "react-icons/tfi";
 import { IoDocumentOutline } from "react-icons/io5";
 import AccountEdit from "./AccountEdit";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
+import FadeLoader from "react-spinners/FadeLoader";
 
-export default function ChatBar({ user_selector }) {
+export default function ChatBar({ user_selector, user_selected }) {
   let store_data = useContext(msgcontext);
-  let [selected_index, setindex] = useState(null);
   let [settings_selected, setsettings] = useState(false);
   let search_debouncer = useMemo(() => {
     let debouncer = function dbc(delay) {
@@ -145,100 +145,105 @@ export default function ChatBar({ user_selector }) {
 
       {/* chats section */}
       <div className="px-3 chatbar chat-section mt-6 w-full flex flex-col pb-3 gap-y-1 grow overflow-hidden overflow-y-scroll">
-        {store_data.contacts.map((item, index) => (
-          <div
-            className={`chat flex gap-3 cursor-pointer  text-white py-3 px-3
+        {store_data.contacts.length > 0 ? (
+          store_data.contacts.map((item, index) => (
+            <div
+              className={`chat flex gap-3 cursor-pointer  text-white py-3 px-3
                 ${
-                  selected_index === item.mobile
+                  user_selected &&
+                  user_selected.user_details.mobile === item.mobile
                     ? "bg-black/15"
                     : "hover:bg-black/10"
                 }`}
-            key={index}
-            onClick={() => {
-              if (store_data.chats.get(item.mobile)) {
-                user_selector((prev) => {
-                  if (prev) {
-                    if (prev.user_details.mobile !== item.mobile) {
-                      setindex(item.mobile);
+              key={index}
+              onClick={() => {
+                if (store_data.chats.get(item.mobile)) {
+                  user_selector((prev) => {
+                    if (prev) {
+                      if (prev.user_details.mobile !== item.mobile) {
+                        return {
+                          user_details: item,
+                        };
+                      } else {
+                        return prev;
+                      }
+                    } else {
                       return {
                         user_details: item,
                       };
-                    } else {
-                      return prev;
                     }
-                  } else {
-                    setindex(item.mobile);
-                    return {
-                      user_details: item,
-                    };
-                  }
-                });
-              }
-            }}
-          >
-            {/* left section */}
-            <img
-              src={item.profile_pic}
-              loading="lazy"
-              onError={(event) => {
-                event.target.src = empty_image;
+                  });
+                }
               }}
-              className="w-12 h-12 rounded-full shrink-0"
-            />
-            {/* middle section */}
-            <div className="flex flex-col gap-y-1 grow">
-              <div className="font-bold text-[#0d0d0d]">{item.name}</div>
-              <div className="flex gap-1 items-center">
-                {/* msg read */}
-                {store_data.chats.get(item.mobile) &&
-                store_data.chats.get(item.mobile).chats.length > 0 &&
-                store_data.chats.get(item.mobile).chats[0].sender ===
-                  JSON.parse(localStorage.getItem("mobile")) &&
-                store_data.chats.get(item.mobile).chats[0].msgread ? (
-                  <IoCheckmarkDoneOutline className="text-[blue] w-4 h-4" />
-                ) : null}
-
-                {/* msg unread */}
-                {store_data.chats.get(item.mobile) &&
-                store_data.chats.get(item.mobile).chats.length > 0 &&
-                store_data.chats.get(item.mobile).chats[0].sender ===
-                  JSON.parse(localStorage.getItem("mobile")) &&
-                !store_data.chats.get(item.mobile).chats[0].msgread ? (
-                  <IoCheckmarkDoneOutline className="text-[grey] w-4 h-4" />
-                ) : null}
-
-                <div className="line-clamp-1 text-chat-bar-msg-0">
+            >
+              {/* left section */}
+              <img
+                src={item.profile_pic}
+                loading="lazy"
+                onError={(event) => {
+                  event.target.src = empty_image;
+                }}
+                className="w-12 h-12 rounded-full shrink-0"
+              />
+              {/* middle section */}
+              <div className="flex flex-col gap-y-1 grow">
+                <div className="font-bold text-[#0d0d0d]">{item.name}</div>
+                <div className="flex gap-1 items-center">
+                  {/* msg read */}
                   {store_data.chats.get(item.mobile) &&
-                  store_data.chats.get(item.mobile).chats.length > 0
-                    ? render_msg_content(
-                        store_data.chats.get(item.mobile).chats[0]
-                      )
-                    : "Start a new chat"}
-                </div>
-              </div>
-            </div>
+                  store_data.chats.get(item.mobile).chats.length > 0 &&
+                  store_data.chats.get(item.mobile).chats[0].sender ===
+                    JSON.parse(localStorage.getItem("mobile")) &&
+                  store_data.chats.get(item.mobile).chats[0].msgread ? (
+                    <IoCheckmarkDoneOutline className="text-[blue] w-4 h-4" />
+                  ) : null}
 
-            {/* right section */}
-            <div className="flex flex-col gap-y-1 shrink-0">
-              <div className="text-chat-pending-0 text-sm font-medium">
-                {store_data.chats.get(item.mobile) &&
-                store_data.chats.get(item.mobile).chats.length > 0
-                  ? beautify_date(
-                      store_data.chats.get(item.mobile).chats[0].msgtime
-                    )
-                  : null}
-              </div>
-              {store_data.chats.get(item.mobile) &&
-              store_data.chats.get(item.mobile).unread > 0 ? (
-                <div className="flex items-center justify-end">
-                  <div className="bg-[#3aa13abf] rounded-full w-6 h-6 text-white flex items-center justify-center">
-                    {store_data.chats.get(item.mobile).unread}
+                  {/* msg unread */}
+                  {store_data.chats.get(item.mobile) &&
+                  store_data.chats.get(item.mobile).chats.length > 0 &&
+                  store_data.chats.get(item.mobile).chats[0].sender ===
+                    JSON.parse(localStorage.getItem("mobile")) &&
+                  !store_data.chats.get(item.mobile).chats[0].msgread ? (
+                    <IoCheckmarkDoneOutline className="text-[grey] w-4 h-4" />
+                  ) : null}
+
+                  <div className="line-clamp-1 text-chat-bar-msg-0">
+                    {store_data.chats.get(item.mobile) &&
+                    store_data.chats.get(item.mobile).chats.length > 0
+                      ? render_msg_content(
+                          store_data.chats.get(item.mobile).chats[0]
+                        )
+                      : "Start a new chat"}
                   </div>
                 </div>
-              ) : null}
+              </div>
+
+              {/* right section */}
+              <div className="flex flex-col gap-y-1 shrink-0">
+                <div className="text-chat-pending-0 text-sm font-medium">
+                  {store_data.chats.get(item.mobile) &&
+                  store_data.chats.get(item.mobile).chats.length > 0
+                    ? beautify_date(
+                        store_data.chats.get(item.mobile).chats[0].msgtime
+                      )
+                    : null}
+                </div>
+                {store_data.chats.get(item.mobile) &&
+                store_data.chats.get(item.mobile).unread > 0 ? (
+                  <div className="flex items-center justify-end">
+                    <div className="bg-[#3aa13abf] rounded-full w-6 h-6 text-white flex items-center justify-center">
+                      {store_data.chats.get(item.mobile).unread}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="grow flex justify-center items-center">
+            <FadeLoader />
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

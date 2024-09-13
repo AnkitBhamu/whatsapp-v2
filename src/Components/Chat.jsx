@@ -15,7 +15,11 @@ import { msgcontext } from "./MsgstoreProvider";
 import AttachmentOptions from "./AttachmentOptions";
 import Msg from "./Msg";
 
-export default function Chat({ user_selected }) {
+export default function Chat({
+  user_selected,
+  videocallsetter,
+  call_details_setter,
+}) {
   let [chats_sorted, setsortedchats] = useState(null);
   let chat_ref = useRef();
   let chat_container_ref = useRef();
@@ -229,7 +233,18 @@ export default function Chat({ user_selected }) {
         {/* right section */}
         <div className="flex gap-8 items-center">
           {/* <FcVideoCall className="header-icons" /> */}
-          <img src={videocall} className="header-icons" alt="" />
+          <img
+            src={videocall}
+            className="header-icons"
+            alt=""
+            onClick={() => {
+              videocallsetter(true);
+              call_details_setter({
+                initiator: JSON.parse(localStorage.getItem("mobile")),
+                target_user_details: user_selected.user_details,
+              });
+            }}
+          />
           <IoCallOutline className="header-icons" />
           <div className="w-[2px] h-6 bg-gray-500"></div>
           <VscSearch className="header-icons" />
