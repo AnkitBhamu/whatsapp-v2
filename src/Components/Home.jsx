@@ -6,14 +6,14 @@ import { MsgstoreProvider } from "./MsgstoreProvider";
 import NoChatSelected from "./NoChatSelected";
 
 export default function Home() {
-  let [chat_selected, setSelected] = useState(null);
+  let [user_selected, setSelected] = useState(null);
   return (
     <SocketContextProvider>
       <MsgstoreProvider>
         <div className="flex h-screen">
-          <ChatBar chat_selector={setSelected} />
-          {chat_selected ? (
-            <Chat chat_data={chat_selected} />
+          <ChatBar user_selector={setSelected} />
+          {user_selected ? (
+            <Chat user_selected={user_selected} />
           ) : (
             <NoChatSelected />
           )}

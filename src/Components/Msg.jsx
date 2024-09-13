@@ -22,7 +22,6 @@ export default function Msg(props) {
     }
 
     return () => {
-      console.log("Deletingg object with url : ", url_ref.current);
       if (url_ref.current) URL.revokeObjectURL(url_ref.current);
     };
   }, [Msg]);

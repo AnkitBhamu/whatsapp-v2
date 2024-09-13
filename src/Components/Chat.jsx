@@ -15,9 +15,8 @@ import { msgcontext } from "./MsgstoreProvider";
 import AttachmentOptions from "./AttachmentOptions";
 import Msg from "./Msg";
 
-export default function Chat(props) {
+export default function Chat({ user_selected }) {
   let [chats_sorted, setsortedchats] = useState(null);
-  let [chat_person, setperson] = useState(null);
   let chat_ref = useRef();
   let chat_container_ref = useRef();
   let socket = useContext(sockcontext);
@@ -35,7 +34,7 @@ export default function Chat(props) {
   );
 
   function render_chats(chats) {
-    if (!chats || chats.length === 0) return null;
+    if (!chats || chats.length === 0) return <div ref={chat_ref}></div>;
     else {
       let final_array = [];
 
@@ -78,6 +77,7 @@ export default function Chat(props) {
           );
         });
       });
+
       return (
         <div className="flex flex-col gap-y-8" ref={chat_ref}>
           {final_array}
@@ -87,7 +87,7 @@ export default function Chat(props) {
   }
 
   function sort_chats(chats) {
-    console.log("sorting the chats that are : ", store_data.chats);
+    // console.log("sorting the chats that are : ", store_data.chats);
     let cmap = new Map();
 
     if (chats.length === 0) {
@@ -108,7 +108,7 @@ export default function Chat(props) {
       }
     }
 
-    console.log("sorted array is : ", cmap);
+    // console.log("sorted array is : ", cmap);
     return cmap;
   }
 
@@ -121,8 +121,8 @@ export default function Chat(props) {
     let now = new Date();
     if (msg_data) {
       let msg = {
-        sender: "1234567890",
-        receiver: chat_person,
+        sender: JSON.parse(localStorage.getItem("mobile")),
+        receiver: user_selected.user_details.mobile,
         msg: "",
         media_data: msg_data,
         msgtype: type.toLowerCase(),
@@ -143,7 +143,7 @@ export default function Chat(props) {
     if (msg_data != "") {
       let msg = {
         sender: JSON.parse(localStorage.getItem("mobile")),
-        receiver: chat_person,
+        receiver: user_selected.user_details.mobile,
         msg: msg_data,
         msgtype: "text",
         msgtime: now,
@@ -160,7 +160,7 @@ export default function Chat(props) {
   // clearing the chat on user_change
   useEffect(() => {
     setmsg("");
-  }, [props.chat_data.user_details.mobile]);
+  }, [user_selected.user_details.mobile]);
 
   // function get user_status every 5 ms
   function get_user_status(mobile) {
@@ -176,44 +176,43 @@ export default function Chat(props) {
 
   // user status check every 5 seconds
   useEffect(() => {
-    if (chat_person) {
-      get_user_status(chat_person);
-    }
+    get_user_status(user_selected.user_details.mobile);
+
     let timer;
-    if (chat_person) {
-      timer = setInterval(() => {
-        get_user_status(chat_person);
-      }, 5000);
+    timer = setInterval(() => {
+      get_user_status(user_selected.user_details.mobile);
+    }, 5000);
 
-      return () => {
-        clearInterval(timer);
-        console.log("Timer interval deleted");
-      };
-    }
-  }, [chat_person]);
+    return () => {
+      clearInterval(timer);
+      console.log("Timer interval deleted");
+    };
+  }, [user_selected.user_details.mobile]);
 
-  // these are async functions
   useEffect(() => {
-    if (chat_person !== props.chat_data.user_details.mobile) {
-      setperson(props.chat_data.user_details.mobile);
-    }
-    setsortedchats(
-      sort_chats(store_data.chats.get(props.chat_data.user_details.mobile))
-    );
+    store_data.setchats((prev) => {
+      let new_map = new Map(prev);
+      prev.get(user_selected.user_details.mobile).unread = 0;
+      return new_map;
+    });
+  }, [user_selected.user_details.mobile]);
 
+  // updating the chats
+  useEffect(() => {
     // notifying the users that all messages readed they sent
-    socket.emit("all_msg_read", props.chat_data.user_details.mobile);
-    store_data.chats.get(props.chat_data.user_details.mobile).unread = 0;
-  }, [props.chat_data.user_details.mobile, store_data.chats]);
+    socket.emit("all_msg_read", user_selected.user_details.mobile);
+    setsortedchats(
+      sort_chats(store_data.chats.get(user_selected.user_details.mobile).chats)
+    );
+  }, [store_data.chats]);
 
   // reset the scroll always to bottom of the chats
   useEffect(() => {
     if (chat_ref.current) {
-      let height_chat_container =
-        chat_ref.current.getBoundingClientRect().height;
-      chat_container_ref.current.scrollTo(0, height_chat_container);
+      let height = chat_ref.current.scrollHeight;
+      chat_container_ref.current.scrollTo(0, height);
     }
-  }, [props.chat_data, chat_ref, chat_person, chats_sorted]);
+  }, [chats_sorted]);
 
   return (
     <div className="chat-container grow  relative flex flex-col">
@@ -222,7 +221,7 @@ export default function Chat(props) {
         {/* left section */}
         <div className="flex flex-col">
           <div className="font-bold text-2xl">
-            {props.chat_data.user_details.name}
+            {user_selected.user_details.name}
           </div>
           <div className="text-[grey]">{user_stats}</div>
         </div>
@@ -235,7 +234,7 @@ export default function Chat(props) {
           <div className="w-[2px] h-6 bg-gray-500"></div>
           <VscSearch className="header-icons" />
           <img
-            src={props.chat_data.user_details.profile_pic}
+            src={user_selected.user_details.profile_pic}
             onError={(event) => {
               event.target.src = empty_image;
             }}
@@ -248,7 +247,7 @@ export default function Chat(props) {
       {/* all chats */}
       <div
         ref={chat_container_ref}
-        className="chats pt-6 px-8 flex flex-col gap-y-8 grow overflow-hidden overflow-y-scroll pb-5 scroll-smooth"
+        className="chats pt-6 px-8 flex flex-col gap-y-8 grow overflow-y-scroll pb-5 scroll-smooth"
       >
         {rendered_chats}
       </div>

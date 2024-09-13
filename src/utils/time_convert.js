@@ -26,8 +26,8 @@ function beautify_date(time) {
   if (date === new Date().getDate()) {
     return convert_to_time(time);
   } else {
-    let day = dobj.getDay().toString().padStart(2, "0");
-    let month = dobj.getMonth().toString().padStart(2, "0");
+    let day = dobj.getDate().toString().padStart(2, "0");
+    let month = (dobj.getMonth() + 1).toString().padStart(2, "0");
     let year = dobj.getFullYear().toString().padStart(2, "0");
     return day + "-" + month + "-" + year;
   }

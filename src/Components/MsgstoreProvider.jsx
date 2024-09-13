@@ -1,6 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { sockcontext } from "./SocketContextProvider";
 import axios from "axios";
+
+// useref can also be used if we only want to change a value withour re rendering a component and also it is a sync fn pbject
 
 let msgcontext = createContext();
 
@@ -8,31 +16,11 @@ function MsgstoreProvider({ children }) {
   let socket = useContext(sockcontext);
   let [contacts, setcontacts] = useState([]);
   let [chats, setchats] = useState(new Map());
-  let [msgstatus, setmsgstatus] = useState([]);
 
   // get total number of unread chats so that can be updated
 
   async function fetch_chats(user1, user2) {
     socket.emit("fetch_chats", [user1, user2]);
-
-    // axios
-    //   .get(
-    //     `http://localhost:8080/api/chats/fetch?user1=${user1}&user2=${user2}`
-    //   )
-    //   .then((response) => {
-    //     setchats((prev_chats) => {
-    //       let new_map = new Map(prev_chats);
-    //       let unread = 0;
-    //       response.data.forEach((item) => {
-    //         if (item.msgread === false) unread += 1;
-    //       });
-
-    //       console.log("Unread msgs are : ", unread, user2);
-    //       new_map.set(user2, response.data);
-
-    //       return new_map;
-    //     });
-    //   });
   }
 
   // get all contacts
@@ -41,21 +29,31 @@ function MsgstoreProvider({ children }) {
       `http://localhost:8080/api/user/contacts?mobile=${mobile}`
     );
 
-    response.data.contacts.forEach((element) => {
-      axios
-        .get(`http://localhost:8080/api/user/details?mobile=${element}`)
-        .then(
-          (response) => {
-            setcontacts((contacts) => [...contacts, response.data]);
-            fetch_chats(
-              JSON.parse(localStorage.getItem("mobile")),
-              response.data.mobile
-            );
-          }
-          // using this form for avoiding closure issues as it takes old value as arguement and update it(basically chaining)
-        )
-        .catch((err) => console.log(err));
+    let contact_details = await Promise.all(
+      response.data.contacts.map(async (element) => {
+        try {
+          let response = await axios.get(
+            `http://localhost:8080/api/user/details?mobile=${element}`
+          );
+          return response.data;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    contact_details.sort((a, b) => {
+      if (a.name <= b.name) return -1;
+      else {
+        return 0;
+      }
     });
+
+    contact_details.forEach((item, index) => {
+      fetch_chats(JSON.parse(localStorage.getItem("mobile")), item.mobile);
+    });
+
+    setcontacts(contact_details);
   }
 
   function update_chats(msg, user_mob) {
@@ -63,10 +61,10 @@ function MsgstoreProvider({ children }) {
     console.log("Updating the chats messages");
     setchats((prev) => {
       if (prev.get(sender_mobile)) {
-        prev.get(sender_mobile).push(msg);
+        prev.get(sender_mobile).chats.push(msg);
         prev
           .get(sender_mobile)
-          .sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
+          .chats.sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
         console.log(new Map(prev));
       }
 
@@ -90,9 +88,7 @@ function MsgstoreProvider({ children }) {
           if (item.msgread === false && item.sender === data.users[1])
             unread += 1;
         });
-        data.chats.unread = unread;
-        console.log("Unread msgs are : ", unread, data.users[1]);
-        new_map.set(data.users[1], data.chats);
+        new_map.set(data.users[1], { chats: data.chats, unread: unread });
         return new_map;
       });
     });
@@ -101,7 +97,8 @@ function MsgstoreProvider({ children }) {
     socket.on("all_msg_read", (mobile) => {
       let changed = false;
       setchats((prev) => {
-        prev.get(mobile).forEach((item, index) => {
+        console.log("Previous is : ", prev);
+        prev.get(mobile).chats.forEach((item, index) => {
           if (item.msgread === false) {
             item.msgread = true;
             changed = true;
@@ -120,6 +117,8 @@ function MsgstoreProvider({ children }) {
         contacts: contacts,
         chats: chats,
         chats_updater: update_chats,
+        setchats: setchats,
+        setcontacts: setcontacts,
       }}
     >
       {children}
