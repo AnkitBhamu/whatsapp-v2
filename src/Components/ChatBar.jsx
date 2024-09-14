@@ -19,7 +19,6 @@ export default function ChatBar({ user_selector, user_selected }) {
   let search_debouncer = useMemo(() => {
     let debouncer = function dbc(delay) {
       let timeout;
-
       return function (exec) {
         clearTimeout(timeout);
         timeout = setTimeout(exec, delay);
