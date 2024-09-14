@@ -66,6 +66,7 @@ function MsgstoreProvider({ children }) {
           .get(sender_mobile)
           .chats.sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
         console.log(new Map(prev));
+        prev.get(sender_mobile).unread += 1;
       }
 
       return new Map(prev);

@@ -19,6 +19,7 @@ export default function Chat({
   user_selected,
   videocallsetter,
   call_details_setter,
+  call_type_setter,
 }) {
   let [chats_sorted, setsortedchats] = useState(null);
   let chat_ref = useRef();
@@ -239,6 +240,7 @@ export default function Chat({
             alt=""
             onClick={() => {
               videocallsetter(true);
+              call_type_setter("call");
               call_details_setter({
                 initiator: JSON.parse(localStorage.getItem("mobile")),
                 target_user_details: user_selected.user_details,
