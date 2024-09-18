@@ -8,7 +8,6 @@ import PreviewMsg from "./PreviewMsg";
 export default function ({ msg_sender, active }) {
   let [preview, setpreview] = useState(false);
   let [fileselected, setfileselected] = useState(null);
-  console.log("Preview is : ", preview);
 
   function handlePreview(media_ele_id) {
     console.log("Handling preview image!!");

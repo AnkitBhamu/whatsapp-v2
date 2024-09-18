@@ -1,29 +1,21 @@
-import React, {
-  memo,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "../styles/chat.css";
 import { IoCallOutline } from "react-icons/io5";
 import { VscSearch } from "react-icons/vsc";
 import videocall from "../assets/video_call.png";
-import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import { GrEmoji } from "react-icons/gr";
 import { CgAttachment } from "react-icons/cg";
 import { LuSendHorizonal } from "react-icons/lu";
 import empty_image from "../assets/empty_image.svg";
-import { convert_to_date, convert_to_time } from "../utils/time_convert";
+import { convert_to_date } from "../utils/time_convert";
 import { sockcontext } from "./SocketContextProvider";
 import EmojiPicker from "emoji-picker-react";
 import { msgcontext } from "./MsgstoreProvider";
 import AttachmentOptions from "./AttachmentOptions";
-import Msg from "./Msg";
 import debouncer from "../utils/debouncer";
 import longestMatch from "../utils/searching";
 import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+import Rendered_chats from "./Chats";
 
 export default function Chat({
   user_selected,
@@ -43,15 +35,19 @@ export default function Chat({
   let [sentmsg, setmsg] = useState("");
   let [attachclicked, setattached] = useState(false);
   let [searched_clicked, setsrchclicked] = useState(false);
-  let [matched_chats, setmatched] = useState(0);
+  let [matched_chats, setmatched] = useState([]);
   let [current_match_index, setindex] = useState(0);
 
-  let Rendered_chats = memo(render_chats);
-
   function search_chat(input) {
+    if (matched_chats.length != 0) {
+      let element = document.getElementById(
+        matched_chats[current_match_index - 1].id
+      );
+      element.style.backgroundColor = "";
+    }
     if (input === "") {
       setindex(0);
-      setmatched(0);
+      setmatched([]);
       return;
       // do the scroll to bottom of the container
     }
@@ -69,71 +65,56 @@ export default function Chat({
       });
     });
 
-    setmatched(matched_arr.length);
+    if (matched_arr.length === 0) {
+      setindex(0);
+      setmatched([]);
+      return;
+    }
+
+    setmatched(matched_arr);
     setindex(1);
-    console.log("input search is : ", input);
-    console.log("matched arr is : ", matched_arr);
+    let first_element = document.getElementById(matched_arr[0].id);
+    first_element.scrollIntoView({ block: "center" });
+    first_element.style.backgroundColor = "#eeee01";
   }
 
-  function render_chats({ chats }) {
-    if (!chats || chats.length === 0) return <div ref={chat_ref}></div>;
-    else {
-      let final_array = [];
-
-      chats.forEach((value, key) => {
-        final_array.push(
-          <div className="flex justify-center" key={key}>
-            <div className=" bg-white text-black px-2 py-1 rounded-sm flex">
-              {key}
-            </div>
-          </div>
-        );
-
-        value.forEach((item, index) => {
-          final_array.push(
-            item.sender !==
-              JSON.parse(window.localStorage.getItem("mobile")) ? (
-              <div className="flex" key={key + index} id={key + index}>
-                <div className="my-chat flex bg-my-chat-0 max-w-[50%] py-1 px-2 flex-col gap-y-1 rounded-md">
-                  <Msg msg={item} />
-                  <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
-                    <div>{convert_to_time(item.msgtime)}</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="flex justify-end"
-                key={key + index}
-                id={key + index}
-              >
-                <div className="my-chat flex bg-frnd-chat-0 max-w-[50%] py-2 px-2 flex-col gap-y-1 items-end  rounded-md">
-                  <Msg msg={item} />
-                  <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
-                    <div>{convert_to_time(item.msgtime)}</div>
-                    {item.msgread ? (
-                      <IoCheckmarkDoneOutline className="text-[blue] w-4 h-4" />
-                    ) : (
-                      <IoCheckmarkDoneOutline className="text-[grey] w-4 h-4" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          );
-        });
-      });
-
-      return (
-        <div className="flex flex-col gap-y-8" ref={chat_ref}>
-          {final_array}
-        </div>
+  function change_matched_index(action) {
+    if (action == "down") {
+      let curr_index = Math.min(current_match_index + 1, matched_chats.length);
+      let prev_index = current_match_index;
+      let prev_element = document.getElementById(
+        matched_chats[prev_index - 1].id
       );
+      let curr_element = document.getElementById(
+        matched_chats[curr_index - 1].id
+      );
+      curr_element.scrollIntoView({ block: "center" });
+      curr_element.style.backgroundColor = "#eeee01";
+      prev_element.style.backgroundColor = "";
+      // curr_element.style.scale = "1.5";
+      // prev_element.style.scale = "1";
+      setindex(curr_index);
+    }
+
+    if (action == "up") {
+      let curr_index = Math.max(current_match_index - 1, 1);
+      let prev_index = current_match_index;
+      let prev_element = document.getElementById(
+        matched_chats[prev_index - 1].id
+      );
+      let curr_element = document.getElementById(
+        matched_chats[curr_index - 1].id
+      );
+      curr_element.scrollIntoView({ block: "center" });
+      curr_element.style.backgroundColor = "#eeee01";
+      prev_element.style.backgroundColor = "";
+      // curr_element.style.scale = "1.5";
+      // prev_element.style.scale = "1";
+      setindex(curr_index);
     }
   }
 
   function sort_chats(chats) {
-    // console.log("sorting the chats that are : ", store_data.chats);
     let cmap = new Map();
 
     if (chats.length === 0) {
@@ -234,6 +215,12 @@ export default function Chat({
   }, [user_selected.user_details.mobile]);
 
   useEffect(() => {
+    setsrchclicked(false);
+    setmatched([]);
+    setindex(0);
+    setemoji(false);
+    setattached(false);
+    get_user_status(user_selected.user_details.mobile);
     store_data.setchats((prev) => {
       let new_map = new Map(prev);
       prev.get(user_selected.user_details.mobile).unread = 0;
@@ -296,7 +283,18 @@ export default function Chat({
           <div className=" p-2">
             <VscSearch
               className="header-icons"
-              onClick={() => setsrchclicked(!searched_clicked)}
+              onClick={() => {
+                if (searched_clicked) {
+                  matched_chats.length > 0 &&
+                    (document.getElementById(
+                      matched_chats[current_match_index - 1].id
+                    ).style.backgroundColor = "");
+                  setmatched([]);
+                  setindex(0);
+                }
+
+                setsrchclicked(!searched_clicked);
+              }}
             />
           </div>
 
@@ -310,7 +308,7 @@ export default function Chat({
           />
         </div>
         <div
-          className={`search-box absolute bg-red  border-t-2 border-black/10 flex gap-2  bg-white  right-4 top-full h-14 drop-shadow-lg p-2 min-w-80 max-w-[800px] ${
+          className={`search-box absolute bg-red z-50  border-t-2 border-black/10 flex gap-2  bg-white  right-4 top-full h-14 drop-shadow-lg p-2 min-w-80 max-w-[800px] ${
             searched_clicked ? "block" : "hidden"
           }`}
         >
@@ -326,14 +324,14 @@ export default function Chat({
               }
             />
             <div className="text-black/50">
-              {current_match_index} of {matched_chats}
+              {current_match_index} of {matched_chats.length}
             </div>
           </div>
 
-          <button>
+          <button onClick={() => change_matched_index("up")}>
             <KeyboardArrowUp />
           </button>
-          <button>
+          <button onClick={() => change_matched_index("down")}>
             <KeyboardArrowDown />
           </button>
         </div>
@@ -344,7 +342,7 @@ export default function Chat({
         ref={chat_container_ref}
         className="chats pt-6 px-8 flex flex-col gap-y-8 grow overflow-y-scroll pb-5 scroll-smooth"
       >
-        <Rendered_chats chats={chats_sorted} />
+        <Rendered_chats chats={chats_sorted} chat_ref={chat_ref} />
       </div>
 
       {/* type chat */}
