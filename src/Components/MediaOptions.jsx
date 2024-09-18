@@ -1,5 +1,5 @@
 import React from "react";
-import mediatypes from "./mediatypes";
+import mediatypes from "../utils/mediatypes";
 
 export default function (props) {
   return (

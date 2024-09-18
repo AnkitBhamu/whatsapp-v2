@@ -66,7 +66,7 @@ export default function Login() {
                 {"+" + selectedcountry.phone_code}
               </div>
               <input
-                className=" h-16  rounded-sm p-4 mobile_input grow"
+                className=" h-16  rounded-sm p-4 mobile_input grow outline-none"
                 type="tel"
                 name=""
                 placeholder="Enter your mobile number"
@@ -78,7 +78,7 @@ export default function Login() {
           </>
         ) : (
           <input
-            className=" h-16  rounded-sm p-4 mobile_input border-2"
+            className=" h-16  rounded-sm p-4 mobile_input border-2 outline-none"
             type="tel"
             name=""
             placeholder="Enter the OTP received"
