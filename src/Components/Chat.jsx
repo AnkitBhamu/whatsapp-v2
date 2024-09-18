@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  memo,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "../styles/chat.css";
 import { IoCallOutline } from "react-icons/io5";
 import { VscSearch } from "react-icons/vsc";
@@ -14,6 +21,9 @@ import EmojiPicker from "emoji-picker-react";
 import { msgcontext } from "./MsgstoreProvider";
 import AttachmentOptions from "./AttachmentOptions";
 import Msg from "./Msg";
+import debouncer from "../utils/debouncer";
+import longestMatch from "../utils/searching";
+import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 
 export default function Chat({
   user_selected,
@@ -21,6 +31,7 @@ export default function Chat({
   call_details_setter,
   call_type_setter,
 }) {
+  console.log("Chat rendered!!");
   let [chats_sorted, setsortedchats] = useState(null);
   let chat_ref = useRef();
   let chat_container_ref = useRef();
@@ -31,14 +42,40 @@ export default function Chat({
   let [openemoji, setemoji] = useState(false);
   let [sentmsg, setmsg] = useState("");
   let [attachclicked, setattached] = useState(false);
+  let [searched_clicked, setsrchclicked] = useState(false);
+  let [matched_chats, setmatched] = useState(0);
+  let [current_match_index, setindex] = useState(0);
 
-  // saving the expensive computation
-  let rendered_chats = useMemo(
-    () => render_chats(chats_sorted),
-    [chats_sorted]
-  );
+  let Rendered_chats = memo(render_chats);
 
-  function render_chats(chats) {
+  function search_chat(input) {
+    if (input === "") {
+      setindex(0);
+      setmatched(0);
+      return;
+      // do the scroll to bottom of the container
+    }
+
+    let matched_arr = [];
+    chats_sorted.forEach((value, key) => {
+      value.forEach((item, index) => {
+        let mcount = longestMatch(input, item.msg);
+        if (mcount > 0) {
+          matched_arr.push({
+            id: key + index,
+            count: mcount,
+          });
+        }
+      });
+    });
+
+    setmatched(matched_arr.length);
+    setindex(1);
+    console.log("input search is : ", input);
+    console.log("matched arr is : ", matched_arr);
+  }
+
+  function render_chats({ chats }) {
     if (!chats || chats.length === 0) return <div ref={chat_ref}></div>;
     else {
       let final_array = [];
@@ -56,7 +93,7 @@ export default function Chat({
           final_array.push(
             item.sender !==
               JSON.parse(window.localStorage.getItem("mobile")) ? (
-              <div className="flex" key={key + index}>
+              <div className="flex" key={key + index} id={key + index}>
                 <div className="my-chat flex bg-my-chat-0 max-w-[50%] py-1 px-2 flex-col gap-y-1 rounded-md">
                   <Msg msg={item} />
                   <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
@@ -65,7 +102,11 @@ export default function Chat({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-end" key={key + index}>
+              <div
+                className="flex justify-end"
+                key={key + index}
+                id={key + index}
+              >
                 <div className="my-chat flex bg-frnd-chat-0 max-w-[50%] py-2 px-2 flex-col gap-y-1 items-end  rounded-md">
                   <Msg msg={item} />
                   <div className="time_status items-center flex gap-2 justify-end text-[grey] text-xs">
@@ -181,8 +222,6 @@ export default function Chat({
 
   // user status check every 5 seconds
   useEffect(() => {
-    get_user_status(user_selected.user_details.mobile);
-
     let timer;
     timer = setInterval(() => {
       get_user_status(user_selected.user_details.mobile);
@@ -214,15 +253,20 @@ export default function Chat({
   // reset the scroll always to bottom of the chats
   useEffect(() => {
     if (chat_ref.current) {
-      let height = chat_ref.current.scrollHeight;
-      chat_container_ref.current.scrollTo(0, height);
+      setTimeout(() => {
+        let height = chat_ref.current.scrollHeight;
+        chat_container_ref.current.scrollTo(
+          0,
+          Math.max(height, window.innerHeight)
+        );
+      }, 100);
     }
   }, [chats_sorted]);
 
   return (
     <div className="chat-container grow  relative flex flex-col">
       {/* header section */}
-      <div className="flex justify-between items-center bg-chat-bg-0 px-4 py-2">
+      <div className="flex justify-between items-center bg-chat-bg-0 px-4 py-2 relative">
         {/* left section */}
         <div className="flex flex-col">
           <div className="font-bold text-2xl">
@@ -249,7 +293,13 @@ export default function Chat({
           />
           <IoCallOutline className="header-icons" />
           <div className="w-[2px] h-6 bg-gray-500"></div>
-          <VscSearch className="header-icons" />
+          <div className=" p-2">
+            <VscSearch
+              className="header-icons"
+              onClick={() => setsrchclicked(!searched_clicked)}
+            />
+          </div>
+
           <img
             src={user_selected.user_details.profile_pic}
             onError={(event) => {
@@ -259,6 +309,34 @@ export default function Chat({
             alt=""
           />
         </div>
+        <div
+          className={`search-box absolute bg-red  border-t-2 border-black/10 flex gap-2  bg-white  right-4 top-full h-14 drop-shadow-lg p-2 min-w-80 max-w-[800px] ${
+            searched_clicked ? "block" : "hidden"
+          }`}
+        >
+          <div className="flex grow items-center">
+            <input
+              type="text"
+              placeholder="search a chat"
+              className="h-full grow p-2  text-black outline-none"
+              onChange={(event) =>
+                debouncer(() => {
+                  search_chat(event.target.value);
+                })
+              }
+            />
+            <div className="text-black/50">
+              {current_match_index} of {matched_chats}
+            </div>
+          </div>
+
+          <button>
+            <KeyboardArrowUp />
+          </button>
+          <button>
+            <KeyboardArrowDown />
+          </button>
+        </div>
       </div>
 
       {/* all chats */}
@@ -266,7 +344,7 @@ export default function Chat({
         ref={chat_container_ref}
         className="chats pt-6 px-8 flex flex-col gap-y-8 grow overflow-y-scroll pb-5 scroll-smooth"
       >
-        {rendered_chats}
+        <Rendered_chats chats={chats_sorted} />
       </div>
 
       {/* type chat */}

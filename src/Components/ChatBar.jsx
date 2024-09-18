@@ -12,37 +12,15 @@ import { IoDocumentOutline } from "react-icons/io5";
 import AccountEdit from "./AccountEdit";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import FadeLoader from "react-spinners/FadeLoader";
+import debouncer from "../utils/debouncer";
+import longestMatch from "../utils/searching";
 
 export default function ChatBar({ user_selector, user_selected }) {
   let store_data = useContext(msgcontext);
   let [settings_selected, setsettings] = useState(false);
-  let search_debouncer = useMemo(() => {
-    let debouncer = function dbc(delay) {
-      let timeout;
-      return function (exec) {
-        clearTimeout(timeout);
-        timeout = setTimeout(exec, delay);
-      };
-    };
-    return debouncer(500);
-  }, []);
+  let search_debouncer = debouncer;
 
   console.log("re rendered chat bar!!");
-
-  function longestMatch(str1, str2) {
-    let arr1 = str1.toLowerCase().split("");
-    let arr2 = str2.toLowerCase().split("");
-    let count = 0;
-    for (let i = 0; i < arr1.length; i++) {
-      if (arr1[i] === arr2[i]) {
-        count += 1;
-      } else {
-        break;
-      }
-    }
-
-    return count;
-  }
 
   function search(input) {
     if (input === "")

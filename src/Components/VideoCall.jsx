@@ -3,9 +3,11 @@ import CallEndIcon from "@mui/icons-material/CallEnd";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import VideocamIcon from "@mui/icons-material/Videocam";
+import VideocamOffIcon from "@mui/icons-material/VideocamOff";
 import { useContext } from "react";
 import empty_image from "../assets/empty_image.svg";
 import { sockcontext } from "./SocketContextProvider";
+import { Mic } from "@mui/icons-material";
 export default function VideoCall({
   call_details,
   videocallsetter,
@@ -14,10 +16,32 @@ export default function VideoCall({
 }) {
   let [friend_video, setfriend_video] = useState(false);
   let [my_video, setmy_video] = useState(false);
+  let [micclicked, setmicclicked] = useState(false);
+  let [videoclicked, setvideoclicked] = useState(false);
+  let [speakerclicked, setspeakerclicked] = useState(false);
 
   let rtc_ref = useRef(null);
   let media_ref = useRef(null);
   let socket = useContext(sockcontext);
+
+  function audio_controller(action) {
+    if (action === "mute")
+      rtc_ref.current.getSenders()[0].track.enabled = false;
+
+    if (action === "unmute") {
+      rtc_ref.current.getSenders()[0].track.enabled = true;
+    }
+  }
+
+  function video_controller(action) {
+    console.log("Senders lists : ", rtc_ref.current.getSenders(), action);
+    if (action === "video-off")
+      rtc_ref.current.getSenders()[1].track.enabled = false;
+
+    if (action === "video-on") {
+      rtc_ref.current.getSenders()[1].track.enabled = true;
+    }
+  }
 
   async function get_userMedia() {
     try {
@@ -78,8 +102,9 @@ export default function VideoCall({
     };
 
     //   initialised the rtc object  now  adding the tracks to it
-    rtcpeerconnection.addTrack(media_stream.getVideoTracks()[0], media_stream);
     rtcpeerconnection.addTrack(media_stream.getAudioTracks()[0], media_stream);
+
+    rtcpeerconnection.addTrack(media_stream.getVideoTracks()[0], media_stream);
 
     let offer = await rtcpeerconnection.createOffer();
     console.log("offer created ; ", offer);
@@ -173,9 +198,9 @@ export default function VideoCall({
     console.log("Remote description added !!");
 
     //   initialised the rtc object  now  adding the tracks to it
-    rtcpeerconnection.addTrack(media_stream.getVideoTracks()[0], media_stream);
     rtcpeerconnection.addTrack(media_stream.getAudioTracks()[0], media_stream);
 
+    rtcpeerconnection.addTrack(media_stream.getVideoTracks()[0], media_stream);
     let answer = await rtcpeerconnection.createAnswer();
     console.log("Answer created ; ", answer);
 
@@ -260,14 +285,51 @@ export default function VideoCall({
       </div>
 
       <div className="m-8 p-4 bg-black rounded-xl flex gap-6">
-        <div className=" w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center">
-          <VideocamIcon className="text-white w-8 h-8" />
+        <div
+          className={`w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center ${
+            videoclicked ? "bg-blue-400" : ""
+          }`}
+          onClick={() => {
+            if (!videoclicked) {
+              video_controller("video-off");
+            } else {
+              video_controller("video-on");
+            }
+            setvideoclicked(!videoclicked);
+          }}
+        >
+          {videoclicked ? (
+            <VideocamOffIcon className="text-white w-8 h-8" />
+          ) : (
+            <VideocamIcon className="text-white w-8 h-8" />
+          )}
         </div>
-        <div className=" w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center">
+        <div
+          className={` w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center ${
+            speakerclicked ? "bg-blue-400" : ""
+          }`}
+          onClick={() => setspeakerclicked(!speakerclicked)}
+        >
           <VolumeUpIcon className="text-white w-8 h-8" />
         </div>
-        <div className=" w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center">
-          <MicOffIcon className="text-white w-8 h-8" />
+        <div
+          className={` w-12 h-12 bg-[#393a3c] rounded-full flex items-center justify-center ${
+            micclicked ? "bg-blue-400" : ""
+          } `}
+          onClick={() => {
+            if (!micclicked) {
+              audio_controller("mute");
+            } else {
+              audio_controller("unmute");
+            }
+            setmicclicked(!micclicked);
+          }}
+        >
+          {micclicked ? (
+            <MicOffIcon className="text-white w-8 h-8" />
+          ) : (
+            <Mic className="text-white w-8 h-8" />
+          )}
         </div>
 
         <div
