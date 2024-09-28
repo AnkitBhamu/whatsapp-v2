@@ -22,6 +22,7 @@ export default function Chat({
   videocallsetter,
   call_details_setter,
   call_type_setter,
+  setcallmedia,
 }) {
   console.log("Chat rendered!!");
   let [chats_sorted, setsortedchats] = useState(null);
@@ -272,13 +273,24 @@ export default function Chat({
             onClick={() => {
               videocallsetter(true);
               call_type_setter("call");
+              setcallmedia("video");
               call_details_setter({
                 initiator: JSON.parse(localStorage.getItem("mobile")),
                 target_user_details: user_selected.user_details,
               });
             }}
           />
-          <IoCallOutline className="header-icons" />
+          <IoCallOutline
+            className="header-icons"
+            onClick={() => {
+              videocallsetter(true);
+              call_type_setter("call");
+              call_details_setter({
+                initiator: JSON.parse(localStorage.getItem("mobile")),
+                target_user_details: user_selected.user_details,
+              });
+            }}
+          />
           <div className="w-[2px] h-6 bg-gray-500"></div>
           <div className=" p-2">
             <VscSearch

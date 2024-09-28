@@ -12,7 +12,6 @@ export default function ({ setvideocall, setcalltype, setvideo_offer }) {
 
   useEffect(() => {
     socket.on("video-offer", (offer) => {
-      //   console.log("offer is : ", offer);
       setoffer(offer);
       setvisible(true);
     });
