@@ -9,6 +9,8 @@ export default function Login() {
   let [selectedcountry, countryselect] = useState(ct_data[0]);
   let [mobile, setmobile] = useState("");
   let [otpstate, setotpstate] = useState(false);
+  let [fullname, setfullname] = useState("");
+  let [lastname, setlastname] = useState("");
   let [otp, setotp] = useState("");
   return (
     <div className="bg-black h-screen w-screen relative flex items-center pt-24 justify-center">
@@ -20,12 +22,12 @@ export default function Login() {
       </div>
       <div className=" bg-white w-[80%] max-w-[800px] h-full z-50 flex pt-28 flex-col  items-center gap-y-4">
         <div className=" text-5xl text-black/55">
-          {!otpstate ? "Enter Phone Number" : "Enter the OTP"}
+          {!otpstate ? "Enter Your Details" : "Enter the OTP"}
         </div>
 
         {!otpstate ? (
           <>
-            <div>Select a country and enter your Whatsapp phone number</div>
+            <div>Please provide the below details to get started</div>
             <div
               className="custom_selector w-80 h-16 border-2 p-4 relative"
               onClick={() => setselected(!dropdown_selected)}
@@ -60,6 +62,17 @@ export default function Login() {
                   ))}
                 </div>
               ) : null}
+            </div>
+            <div className="flex items-center border-2 w-80">
+              <input
+                className=" h-16  rounded-sm p-4 mobile_input grow outline-none"
+                type="text"
+                name=""
+                placeholder="Full Name"
+                id=""
+                value={fullname}
+                onChange={(event) => setfullname(event.target.value)}
+              />
             </div>
             <div className="flex items-center border-2 w-80">
               <div className="p-2 border-r-2">

@@ -4,8 +4,8 @@ import Login from "./Components/Login";
 import VideoCall from "./Components/VideoCall";
 
 function App() {
-  // return <Login />;
-  return <Home />;
+  return <Login />;
+  // return <Home />;
 
   // return <AccountEdit />;
 }
