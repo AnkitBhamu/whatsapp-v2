@@ -12,7 +12,7 @@ import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 
-export default function Login() {
+export default function Register() {
   let [dropdown_selected, setselected] = useState(false);
   let [selectedcountry, countryselect] = useState(ct_data[0]);
   let [mobile, setmobile] = useState("");
@@ -89,12 +89,12 @@ export default function Login() {
       </div>
       <div className=" bg-white w-[80%] max-w-[800px] h-full z-50 flex pt-28 flex-wrap justify-center items-center p-3 gap-x-2 gap-y-2">
         <div className=" text-5xl text-black/55 w-full flex justify-center">
-          Login
+          Enter Your Details
         </div>
         <div className="w-full flex justify-center">
-          Need to register?{" "}
-          <Link to={"/register"} className="text-blue-500">
-            Register
+          Need to login?
+          <Link to={"/login"} className="text-blue-500">
+            Login
           </Link>
         </div>
         <div
@@ -128,7 +128,18 @@ export default function Login() {
             </div>
           ) : null}
         </div>
-        {/* <div className="flex items-center border-2 w-80">
+        <div className="flex items-center border-2 w-80">
+          <input
+            className=" h-16  rounded-sm p-4 mobile_input grow outline-none"
+            type="text"
+            name=""
+            placeholder="Full Name"
+            id=""
+            value={fullname}
+            onChange={(event) => setfullname(event.target.value)}
+          />
+        </div>
+        <div className="flex items-center border-2 w-80">
           <input
             className=" h-16  rounded-sm p-4 mobile_input grow outline-none"
             type="text"
@@ -138,7 +149,7 @@ export default function Login() {
             value={email}
             onChange={(event) => setemail(event.target.value)}
           />
-        </div> */}
+        </div>
         <div className="flex items-center border-2 w-80">
           <div className="p-2 border-r-2">
             {"+" + selectedcountry.phone_code}
@@ -153,13 +164,13 @@ export default function Login() {
             onChange={(event) => setmobile(event.target.value)}
           />
         </div>
-        <div className="w-full justify-center flex">Or</div>
+
         <div
           className="w-80 h-10 flex gap-3 items-center bg-white p-2 justify-center shadow-sm shadow-black"
           onClick={signInwithGoogle}
         >
           <FcGoogle />
-          <div>Continue with google</div>
+          <div>Fill details with google</div>
         </div>
 
         <button

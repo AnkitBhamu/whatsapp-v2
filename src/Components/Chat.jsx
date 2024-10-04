@@ -16,6 +16,7 @@ import debouncer from "../utils/debouncer";
 import longestMatch from "../utils/searching";
 import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 import Rendered_chats from "./Chats";
+import { useCookies } from "react-cookie";
 
 export default function Chat({
   user_selected,
@@ -38,6 +39,7 @@ export default function Chat({
   let [searched_clicked, setsrchclicked] = useState(false);
   let [matched_chats, setmatched] = useState([]);
   let [current_match_index, setindex] = useState(0);
+  let [cookies, setcookie, removecookie] = useCookies();
 
   function search_chat(input) {
     if (matched_chats.length != 0) {
@@ -149,7 +151,7 @@ export default function Chat({
     let now = new Date();
     if (msg_data) {
       let msg = {
-        sender: JSON.parse(localStorage.getItem("mobile")),
+        sender: cookies["user_details"].mobile,
         receiver: user_selected.user_details.mobile,
         msg: "",
         media_data: msg_data,
@@ -170,7 +172,7 @@ export default function Chat({
     let now = new Date();
     if (msg_data != "") {
       let msg = {
-        sender: JSON.parse(localStorage.getItem("mobile")),
+        sender: cookies["user_details"].mobile,
         receiver: user_selected.user_details.mobile,
         msg: msg_data,
         msgtype: "text",
@@ -275,7 +277,7 @@ export default function Chat({
               call_type_setter("call");
               setcallmedia("video");
               call_details_setter({
-                initiator: JSON.parse(localStorage.getItem("mobile")),
+                initiator: cookies["user_details"].mobile,
                 target_user_details: user_selected.user_details,
               });
             }}
@@ -286,7 +288,7 @@ export default function Chat({
               videocallsetter(true);
               call_type_setter("call");
               call_details_setter({
-                initiator: JSON.parse(localStorage.getItem("mobile")),
+                initiator: cookies["user_details"].mobile,
                 target_user_details: user_selected.user_details,
               });
             }}

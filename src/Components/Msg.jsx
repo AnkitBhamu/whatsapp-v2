@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import LargePreview from "./LargePreview";
-
 export default function Msg(props) {
   let [objurl, seturl] = useState(null);
 

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { sockcontext } from "./SocketContextProvider";
 import axios from "axios";
+import { useCookies } from "react-cookie";
 
 // useref can also be used if we only want to change a value withour re rendering a component and also it is a sync fn pbject
 
@@ -10,6 +11,8 @@ function MsgstoreProvider({ children }) {
   let socket = useContext(sockcontext);
   let [contacts, setcontacts] = useState([]);
   let [chats, setchats] = useState(new Map());
+  let [cookies, setcookie, removecookie] = useCookies();
+  let [contacts_loaded, setcontacts_loaded] = useState(false);
 
   // get total number of unread chats so that can be updated
 
@@ -44,10 +47,11 @@ function MsgstoreProvider({ children }) {
     });
 
     contact_details.forEach((item, index) => {
-      fetch_chats(JSON.parse(localStorage.getItem("mobile")), item.mobile);
+      fetch_chats(cookies["user_details"].mobile, item.mobile);
     });
 
     setcontacts(contact_details);
+    setcontacts_loaded(true);
   }
 
   function update_chats(msg, user_mob) {
@@ -60,7 +64,7 @@ function MsgstoreProvider({ children }) {
           .get(sender_mobile)
           .chats.sort((a, b) => new Date(b.msgtime) - new Date(a.msgtime));
         console.log(new Map(prev));
-        if (msg.sender !== JSON.parse(localStorage.getItem("mobile")))
+        if (msg.sender !== cookies["user_details"].mobile)
           prev.get(sender_mobile).unread += 1;
       }
 
@@ -69,7 +73,7 @@ function MsgstoreProvider({ children }) {
   }
 
   useEffect(() => {
-    get_chat_history(JSON.parse(localStorage.getItem("mobile")));
+    get_chat_history(cookies["user_details"].mobile);
 
     // register event handlers
     socket.on("msg", (msg) => {
@@ -115,6 +119,7 @@ function MsgstoreProvider({ children }) {
         chats_updater: update_chats,
         setchats: setchats,
         setcontacts: setcontacts,
+        contacts_loaded: contacts_loaded,
       }}
     >
       {children}

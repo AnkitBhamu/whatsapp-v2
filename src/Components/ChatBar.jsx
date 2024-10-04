@@ -14,11 +14,13 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import FadeLoader from "react-spinners/FadeLoader";
 import debouncer from "../utils/debouncer";
 import longestMatch from "../utils/searching";
+import { useCookies } from "react-cookie";
 
 export default function ChatBar({ user_selector, user_selected }) {
   let store_data = useContext(msgcontext);
   let [settings_selected, setsettings] = useState(false);
   let search_debouncer = debouncer;
+  let [cookies, setcookie, removecookie] = useCookies();
 
   console.log("re rendered chat bar!!");
 
@@ -170,7 +172,7 @@ export default function ChatBar({ user_selector, user_selected }) {
                   {store_data.chats.get(item.mobile) &&
                   store_data.chats.get(item.mobile).chats.length > 0 &&
                   store_data.chats.get(item.mobile).chats[0].sender ===
-                    JSON.parse(localStorage.getItem("mobile")) &&
+                    cookies["user_details"].mobile &&
                   store_data.chats.get(item.mobile).chats[0].msgread ? (
                     <IoCheckmarkDoneOutline className="text-[blue] w-4 h-4" />
                   ) : null}
@@ -179,7 +181,7 @@ export default function ChatBar({ user_selector, user_selected }) {
                   {store_data.chats.get(item.mobile) &&
                   store_data.chats.get(item.mobile).chats.length > 0 &&
                   store_data.chats.get(item.mobile).chats[0].sender ===
-                    JSON.parse(localStorage.getItem("mobile")) &&
+                    cookies["user_details"].mobile &&
                   !store_data.chats.get(item.mobile).chats[0].msgread ? (
                     <IoCheckmarkDoneOutline className="text-[grey] w-4 h-4" />
                   ) : null}
@@ -218,7 +220,13 @@ export default function ChatBar({ user_selector, user_selected }) {
           ))
         ) : (
           <div className="grow flex justify-center items-center">
-            <FadeLoader />
+            {store_data.contacts_loaded ? (
+              <div className="text-3xl text-black/30 font-bold">
+                No Contacts
+              </div>
+            ) : (
+              <FadeLoader />
+            )}
           </div>
         )}
       </div>

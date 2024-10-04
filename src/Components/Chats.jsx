@@ -3,8 +3,10 @@ import "../styles/chat.css";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import { convert_to_time } from "../utils/time_convert";
 import Msg from "./Msg";
+import { useCookies } from "react-cookie";
 
-let Rendered_chats = memo(function render_chats({ chats, chat_ref }) {
+let Rendered_chats = memo(function Render_chats({ chats, chat_ref }) {
+  let [cookies, setcookie, removecookie] = useCookies();
   if (!chats || chats.length === 0) return <div ref={chat_ref}></div>;
   else {
     let final_array = [];
@@ -20,7 +22,7 @@ let Rendered_chats = memo(function render_chats({ chats, chat_ref }) {
 
       value.forEach((item, index) => {
         final_array.push(
-          item.sender !== JSON.parse(window.localStorage.getItem("mobile")) ? (
+          item.sender !== cookies["user_details"].mobile ? (
             <div className="flex" key={key + index}>
               <div
                 id={key + index}

@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import CallIcon from "@mui/icons-material/Call";
 import CallEndIcon from "@mui/icons-material/CallEnd";
 import { sockcontext } from "./SocketContextProvider";
-import { msgcontext } from "./MsgstoreProvider";
 
 export default function ({ setvideocall, setcalltype, setvideo_offer }) {
   let socket = useContext(sockcontext);
