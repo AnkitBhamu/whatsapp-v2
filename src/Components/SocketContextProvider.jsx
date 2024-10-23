@@ -5,16 +5,18 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useCookies } from "react-cookie";
 import { io } from "socket.io-client";
 
 let sockcontext = createContext();
 
 function SocketContextProvider({ children }) {
   let [socketstate, setsockstate] = useState(false);
+  let [cookie, setcookie, removecookie] = useCookies();
   let socket = useMemo(() => {
     let sock = io("http://localhost:9000", {
       auth: {
-        mobile: JSON.parse(localStorage.getItem("mobile")),
+        mobile: cookie["user_details"].mobile,
       },
     });
 

@@ -23,7 +23,7 @@ export default function Chat({
   videocallsetter,
   call_details_setter,
   call_type_setter,
-  setcallmedia,
+  // setcallmedia,
 }) {
   console.log("Chat rendered!!");
   let [chats_sorted, setsortedchats] = useState(null);
@@ -234,6 +234,7 @@ export default function Chat({
   // updating the chats
   useEffect(() => {
     // notifying the users that all messages readed they sent
+    console.log("User selected is : ", user_selected.user_details.mobile);
     socket.emit("all_msg_read", user_selected.user_details.mobile);
     setsortedchats(
       sort_chats(store_data.chats.get(user_selected.user_details.mobile).chats)
@@ -275,7 +276,7 @@ export default function Chat({
             onClick={() => {
               videocallsetter(true);
               call_type_setter("call");
-              setcallmedia("video");
+              // setcallmedia("video");
               call_details_setter({
                 initiator: cookies["user_details"].mobile,
                 target_user_details: user_selected.user_details,

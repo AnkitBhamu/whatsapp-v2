@@ -24,13 +24,7 @@ export default function Login() {
 
   function sendLoginInfo() {
     axios
-      .post("http://localhost:8080/api/user/register", {
-        name: fullname,
-        email: email,
-        mobile: mobile,
-        profile_pic: profilepic,
-        country_code: selectedcountry.phone_code,
-      })
+      .get("http://localhost:8080/api/user?mobile=" + mobile)
       .then((response) => {
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 7);
@@ -40,7 +34,7 @@ export default function Login() {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Register error!!");
+        toast.error("Login error!!");
       });
   }
 
