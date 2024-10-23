@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { IoDocumentOutline } from "react-icons/io5";
 import { TfiVideoClapper } from "react-icons/tfi";
-import MediaOptions from "../utils/mediatypes";
+import MediaOptions from "./MediaOptions";
 import PreviewMsg from "./PreviewMsg";
 
 export default function ({ msg_sender, active }) {
