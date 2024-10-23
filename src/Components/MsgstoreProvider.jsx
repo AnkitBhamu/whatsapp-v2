@@ -68,6 +68,14 @@ function MsgstoreProvider({ children }) {
           prev.get(sender_mobile).unread += 1;
       }
 
+      // // means user is not in the contact list
+      // axios
+      //   .get(`http://localhost:8080/api/user/details?mobile=${user_mob}`)
+      //   .then((response) => {
+      //     setcontacts((prev) => [...prev, response.data]);
+      //     prev.set(user_mob, { chats: [msg], unread: 1 });
+      //   });
+
       return new Map(prev);
     });
   }

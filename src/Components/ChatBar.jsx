@@ -15,12 +15,14 @@ import FadeLoader from "react-spinners/FadeLoader";
 import debouncer from "../utils/debouncer";
 import longestMatch from "../utils/searching";
 import { useCookies } from "react-cookie";
+import AddContacts from "./AddContacts";
 
 export default function ChatBar({ user_selector, user_selected }) {
   let store_data = useContext(msgcontext);
   let [settings_selected, setsettings] = useState(false);
   let search_debouncer = debouncer;
   let [cookies, setcookie, removecookie] = useCookies();
+  let [addcontacts, setaddcontacts] = useState(false);
 
   console.log("re rendered chat bar!!");
 
@@ -95,8 +97,12 @@ export default function ChatBar({ user_selector, user_selected }) {
       {/* chatbar heading */}
       <div className="flex justify-between items-center px-5">
         <div className="font-bold text-[24px] text-black">Chats</div>
-        <div className="right flex gap-7 items-center">
-          <BsPlus className="h-7 w-7" />
+        <div className="right flex gap-7 items-center relative">
+          {addcontacts ? <AddContacts /> : null}
+          <BsPlus
+            className="h-7 w-7"
+            onClick={() => setaddcontacts(!addcontacts)}
+          />
           <div className="relative">
             <TbSettings
               className="h-5 w-5"
