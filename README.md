@@ -1,3 +1,32 @@
+# APP FEATURES (included)
+ 1. Real time chatting
+ 2. Chats are retrieved for the user when the user logins
+ 3. Message read ticks are also available
+ 4. Along with text message user can also send photos , videos , documents(do not properly work).
+ 5. User can make video and audio calls.
+ 6. User can search for chat and also can search in chats to able to get needed message quicker
+ 7. User online/offline status is also there in the app.
+ 8. User can add contacts by clicking + icon
+ 9. A fixed photo will be given.
+
+
+# APP FEATURES (not there right now)
+  1. Authentication ( even though it is much necessary)
+  2. Chat encryption (another stuff that is backbone of any social app)
+  3. No OTP based auth user can direclty login after entrying their mobile numbers.
+  4. User profile updation is also in development.
+
+
+
+# NOTE: (weired thing) In order to recieve message both the users must be registered on the app and must be friend of each other by adding each other's mobile number.
+
+
+# PURPOSE OF THE APP
+   1. To learn about WebRTC and latest web technologies.
+   2. Can be used to practice some advanced concepts of react.
+   4.  Many more......
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
