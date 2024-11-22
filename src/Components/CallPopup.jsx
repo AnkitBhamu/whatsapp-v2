@@ -20,7 +20,7 @@ export default function ({ setvideocall, setcalltype, setvideo_offer }) {
       {visible ? (
         <div className="fixed z-50 bg-[#544c4cf7] p-6  text-white right-4 bottom-4 rounded-md flex items-center w-80">
           <div className="font-semibold">
-            ANKIT KUMAR
+            {offer.caller}
             <div>Videocall</div>
           </div>
           <div className="flex gap-3 grow justify-end">

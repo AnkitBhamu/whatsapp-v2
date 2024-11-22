@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../assets/WhatsApp-Logo.wine.svg";
 import { ct_data } from "../assets/countries_data";
 import "../styles/login.css";
@@ -9,7 +9,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useCookies } from "react-cookie";
-import { useNavigate } from "react-router";
+import { replace, useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 
 export default function Login() {
@@ -46,6 +46,12 @@ export default function Login() {
         toast.error("Login error!!");
       });
   }
+
+  useEffect(() => {
+    if (cookies["user_details"]) {
+      navigate("/home", { replace: true });
+    }
+  }, []);
 
   return (
     <div className="bg-black h-screen w-screen relative flex items-center pt-24 justify-center">
