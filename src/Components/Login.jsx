@@ -24,51 +24,26 @@ export default function Login() {
 
   function sendLoginInfo() {
     axios
-      .get("http://localhost:8080/api/user?mobile=" + mobile)
+      .get(
+        "http://localhost:8080/api/user?mobile=" +
+          mobile +
+          "&country_code=" +
+          selectedcountry.phone_code
+      )
       .then((response) => {
+        console.log(response.data);
+        if (response.data === "") {
+          toast.error("Login failed!!");
+        }
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 7);
         setcookie("user_details", response.data, { expires: expirationDate });
-        toast("Register Success!!");
+        toast("Login Success!!");
         navigate("/home", { replace: true });
       })
       .catch((err) => {
         console.log(err);
         toast.error("Login error!!");
-      });
-  }
-
-  function signInwithGoogle() {
-    console.log("came here");
-    const firebaseConfig = {
-      apiKey: "AIzaSyCFdujWvHbK-mSsFcC_A7Vo7zgSpaxHZ-0",
-      authDomain: "test-app2-46851.firebaseapp.com",
-      projectId: "test-app2-46851",
-      storageBucket: "test-app2-46851.appspot.com",
-      messagingSenderId: "816010912839",
-      appId: "1:816010912839:web:13c43bc4c3646950aa3d62",
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const provider = new GoogleAuthProvider();
-
-    // sign in popup
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        // This gives you a Google Access Token.
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-
-        // The signed-in user info.
-        const user = result.user;
-        setfullname(user.displayName);
-        setemail(user.email);
-        setprofilepic(user.photoURL);
-      })
-      .catch((error) => {
-        console.error(error);
       });
   }
 
@@ -81,11 +56,11 @@ export default function Login() {
           <div>WHATSAPP WEB</div>
         </div>
       </div>
-      <div className=" bg-white w-[80%] max-w-[800px] h-full z-50 flex pt-28 flex-wrap justify-center items-center p-3 gap-x-2 gap-y-2">
+      <div className=" bg-white w-[80%] max-w-[800px] h-full z-50 flex flex-col pt-28 flex-wrap justify-center items-center p-3 gap-x-2 gap-y-4">
         <div className=" text-5xl text-black/55 w-full flex justify-center">
           Login
         </div>
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center gap-x-2">
           Need to register?{" "}
           <Link to={"/register"} className="text-blue-500">
             Register
@@ -122,17 +97,7 @@ export default function Login() {
             </div>
           ) : null}
         </div>
-        {/* <div className="flex items-center border-2 w-80">
-          <input
-            className=" h-16  rounded-sm p-4 mobile_input grow outline-none"
-            type="text"
-            name=""
-            placeholder="Email"
-            id=""
-            value={email}
-            onChange={(event) => setemail(event.target.value)}
-          />
-        </div> */}
+
         <div className="flex items-center border-2 w-80">
           <div className="p-2 border-r-2">
             {"+" + selectedcountry.phone_code}
@@ -147,20 +112,12 @@ export default function Login() {
             onChange={(event) => setmobile(event.target.value)}
           />
         </div>
-        <div className="w-full justify-center flex">Or</div>
-        <div
-          className="w-80 h-10 flex gap-3 items-center bg-white p-2 justify-center shadow-sm shadow-black"
-          onClick={signInwithGoogle}
-        >
-          <FcGoogle />
-          <div>Continue with google</div>
-        </div>
 
         <button
           className="bg-[#347D69] w-20 h-10 rounded-sm flex items-center justify-center text-white"
           onClick={sendLoginInfo}
         >
-          Submit
+          Login
         </button>
       </div>
     </div>
